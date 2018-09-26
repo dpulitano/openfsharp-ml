@@ -1,0 +1,13 @@
+D: /_rels
+F: /_rels/.rels
+D: /lib
+F: /lib/FsAlg.XML
+F: /lib/FsAlg.dll
+D: /package
+D: /package/services
+D: /package/services/metadata
+D: /package/services/metadata/core-properties
+F: /package/services/metadata/core-properties/e41b4faef9634fb6860f9b68a36a61f0.psmdcp
+F: /FsAlg.nuspec
+F: /[Content_Types].xml
+F: /fsalg.0.5.13.nupkg
