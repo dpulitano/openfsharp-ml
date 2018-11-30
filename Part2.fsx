@@ -90,10 +90,10 @@ let predict weights features =
 
 // let's try this on 2 examples, using 'flat' weights
 
-let fakeWeights = Array.init (features.Length + 1) (fun i -> 0.0)
+let fakeWeights = Array.init (features.Length + 1) (fun _ -> 0.0)
 
 let englishSample = 
-    "do you enjoy learning by getting your hands dirty and getting stuck into new concepts and ideas"
+    "do you enjoy learning by getting your hands dirty and getting stuck into the new concepts and ideas"
     |> getFeatureVector
     |> prependOne
 
@@ -134,15 +134,18 @@ let setWeightFor (pair,weight) (weights:float[]) =
 
 let manualWeights = 
     emptyWeights ()
-    |> setWeightFor (__, __)
-    |> setWeightFor (__, __)
+    |> setWeightFor ("ng", 5.)
+    |> setWeightFor ("de", -5.)
+    |> setWeightFor ("th", 10.)
+    |> setWeightFor ("e ", -10.)
+
 
  
 // what does our neuron predict now?
 
-predict manualWeights __ 
+predict manualWeights englishSample
 
-predict __ __
+predict manualWeights frenchSample
 
 
 // TODO: play with weights to see if you can improve predictions,
@@ -234,19 +237,23 @@ let steps iters eta x0 =
 
 // TODO: run a Gradient Descent for 20 iterations,
 // starting from x0 = 6.0, with eta = 0.5
-let gradient_example = steps __ __ __
+let gradient_example = steps 20 0.5 6.0
+let gradient_example2 = steps 20 0.05 6.0
+let gradient_example3 = steps 20 0.25 7.5
+
 
 
 Chart.Scatter
   [ [ for x in 0.0 .. 0.01 .. 10.0 -> x, sinSqrt x ]
-    gradient_example ]
+    gradient_example3 ]
 |> Chart.WithLabels ["function"; "descent"]
 
 
 // TODO: try running gradient descent with: 
 // different values of eta: what is the result?
 // different values of x0: what is the result?
-
+// it's really important to have the right start spot, otherwise it won't find the correct max or min
+// it'll find a local min / max
 
 // ----------------------------------------------------------------------------
 // STEP #5: MATH ALERT - more Gradient Descent!
@@ -326,7 +333,19 @@ let trainingData = Array.append lang1 lang2
 // to calculate the predicted label. Then we calculate the Euclidean 
 // distance between the predicted label and the true label.
 // We sum this over all the training data.
-let error trainingData weights = __
+let distance (features1:float[]) (features2:float[]) = 
+    // Calculate the Euclidean distance using Array.map2 and Array.sum
+    Array.map2 (fun a b -> (b - a) ** 2.) features1 features2
+    |> Array.sum
+
+let error trainingData weights = 
+    trainingData
+    |> Array.map (
+        fun (answer, data) -> 
+            let prediction = predict weights data
+            distance [|prediction|] [|answer|]
+    )
+    |> Array.sum
 
 
 // The initial weights for the neuron are generated randomly (this gives 
@@ -357,7 +376,7 @@ let eta = 0.2
 let errorGradient = grad (error trainingData)
 
 // Compute the initial error gradient
-let gradient = __
+let gradient = errorGradient initialWeights
 
 
 // Now we want to minimize the error function which means we'll be going
@@ -385,7 +404,7 @@ let rec gradientDescent steps weights =
     weights
   else
     let gradient = errorGradient weights
-    let newWeights = __
+    let newWeights = Array.zip weights gradient |> Array.map (fun (w, g) -> w - eta * g)
     gradientDescent (steps+1) newWeights
 
 
